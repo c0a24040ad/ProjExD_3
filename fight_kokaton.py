@@ -206,8 +206,8 @@ def main():
                         score.score += 1  #スコア加算
                         break
                 
-        beams = [b for b in beams if b is not None and check_bound(b.rct) == (True, True)]
-        bombs = [b for b in bombs if b is not None]
+        beams = [beam1 for beam1 in beams if beam1 is not None and check_bound(beam1.rct) == (True, True)]
+        bombs = [bomb1 for bomb1 in bombs if bomb1 is not None]
         # bombs = [bomb for bomb in bombs if bomb is not None]                
 
         key_lst = pg.key.get_pressed()
