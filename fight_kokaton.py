@@ -30,7 +30,7 @@ class Bird:
     ゲームキャラクター（こうかとん）に関するクラス
     """
     delta = {  # 押下キーと移動量の辞書
-        pg.K_UP: (0, -5),
+        pg.K_UP: (0, -5), 
         pg.K_DOWN: (0, +5),
         pg.K_LEFT: (-5, 0),
         pg.K_RIGHT: (+5, 0),
@@ -56,6 +56,7 @@ class Bird:
         self.img = __class__.imgs[(+5, 0)]
         self.rct: pg.Rect = self.img.get_rect()
         self.rct.center = xy
+        self.dire=(+5,0)  # こうかとんの向きを表すベクトルを追加
 
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -165,6 +166,29 @@ class Score:
         screen.blit(self.img, self.pos)
 
 
+# class Explosion:
+#     def __init__(self, center: tuple[int, int]):
+#         """
+#         爆発の初期化
+#         引数 center：爆発を表示する位置（中心座標）
+#         """
+#         org_img = pg.image.load("ex3/fig/explosion.gif")  # 元の画像
+#         flipped_img = pg.transform.flip(org_img, True, True)  # 上下左右反転
+#         self.imgs = [org_img, flipped_img]
+#         self.life = 20  # 爆発の表示時間（フレーム数）
+#         self.rct = self.imgs[0].get_rect()
+#         self.rct.center = center
+
+#     def update(self, screen: pg.Surface):
+#         """
+#         爆発の描画と寿命の更新
+#         引数 screen：表示先の画面Surface
+#         """
+#         self.life -= 1
+#         img = self.imgs[self.life % 2]  # 交互に切り替え
+#         screen.blit(img, self.rct)
+
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -173,6 +197,7 @@ def main():
     # bomb = Bomb((255, 0, 0), 10)
     bombs = [Bomb((255, 0, 0), 10)for _ in range (NUM_OF_BOMBS)]
     beams = []  #  複数ビーム対応
+    # explosions=[]
     beam = None  # ゲーム初期化時にはビームは存在しない
     score = Score()
     clock = pg.time.Clock()
@@ -187,7 +212,7 @@ def main():
                 beam = Beam(bird)            
         screen.blit(bg_img, [0, 0])
         for bomb  in bombs:
-            if bird.rct.colliderect(bomb.rct):
+            if bird.rct.colliderect(bomb.rct):              
                 # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
                 bird.change_img(8, screen)
                 fonto= pg.font.Font(None,80)
@@ -197,17 +222,19 @@ def main():
                 time.sleep(1)
                 return
         # ビームと爆弾の衝突処理
-        for beam in beams:
+        for j, beam in enumerate(beams):
             for i, bomb in enumerate(bombs)  :
-                if beam is not None and bomb is not None and beam.rct.colliderect(bomb.rct):  
-                        beams[beams.index(beam)] = None
+                if beam is not None and bomb is not None and beam.rct.colliderect(bomb.rct): 
+                        beams[j] = None 
+                        # explosions.append(Explosion(bomb.rct.center)) 
                         bombs[i] = None
                         bird.change_img(6, screen) 
                         score.score += 1  #スコア加算
-                        break
+                        break 
                 
-        beams = [b for b in beams if b is not None and check_bound(b.rct) == (True, True)]
+        beams = [b for b in beams  if b is not None and check_bound(b.rct) == (True, True)]
         bombs = [b for b in bombs if b is not None]
+        # explosions = [e for e in explosions if e.life > 0]  # 爆発整理
         # bombs = [bomb for bomb in bombs if bomb is not None]                
 
         key_lst = pg.key.get_pressed()
@@ -216,6 +243,8 @@ def main():
             beam.update(screen)
         for bomb in bombs:
             bomb.update(screen)
+        # for exp in explosions: # 爆発描画
+        #     exp.update(screen)
         score.update(screen)  #スコア表示
         pg.display.update()
         tmr += 1
